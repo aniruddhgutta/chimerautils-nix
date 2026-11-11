@@ -5,14 +5,14 @@
   meson,
   ninja,
   pkg-config,
-  acl,
   byacc,
   flex,
+  acl,
   bzip2,
-  libxo,
-  ncurses,
   libedit,
   libselinux,
+  libxo,
+  ncurses,
   openssl,
   xz,
   zlib,
@@ -37,27 +37,39 @@ stdenv.mkDerivation (finalAttrs: {
     byacc
     flex
   ];
-
   buildInputs = [
     acl
     bzip2
-    libxo
-    ncurses
     libedit
     libselinux
+    libxo
+    ncurses
     openssl
     xz
     zlib
     zstd
   ];
 
-  mesonFlags = [ "-Dchimera_realpath=enabled" ];
+  mesonFlags = [
+    "--libexecdir=lib/chimerautils"
+    "-Dchimera_realpath=enabled"
+  ];
+  
+  postInstall = ''
+    install -Dm644 ${finalAttrs.src}/LICENSE -t $out/share/licenses/chimerautils
+
+    # etc files: Chimera ships them under share/ and installs via tmpfiles
+    if [ -d $out/etc ]; then
+      mkdir -p $out/share/chimerautils
+      mv $out/etc/* $out/share/chimerautils/
+      rmdir $out/etc
+    fi
+  '';
 
   meta = {
     description = "Chimera's core userland, based on FreeBSD";
     homepage = "https://github.com/chimera-linux/chimerautils";
     license = lib.licenses.bsd2;
-    platforms = [ "x86_64-linux" ];
-    sourceProvenance = with lib.sourceTypes; [ fromSource ];
+    platforms = lib.platforms.linux;
   };
 })
